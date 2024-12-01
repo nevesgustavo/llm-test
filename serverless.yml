@@ -1,0 +1,44 @@
+service: prompt-test
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: provided.al2023
+  stage: dev
+  region: us-east-1
+  apiName: prompt-test-api-gateway
+  apiGateway:
+    apiKeySourceType: HEADER
+    apiKeys:
+      - name: freeApiKey
+        description: Free API Key for prompt-test service
+        enabled: true
+    usagePlan:
+      quota:
+        limit: 1000
+        period: MONTH
+      throttle:
+        burstLimit: 20
+        rateLimit: 5
+
+plugins:
+  - serverless-go-plugin
+
+custom:
+  go:
+    supportedRuntimes: ["provided.al2023"]
+    buildProvidedRuntimeAsBootstrap: true
+
+package:
+  patterns:
+    - '!./**'
+    - ./bin/**
+
+functions:
+  sendMessage:
+    handler: cmd/main.go
+    events:
+      - http:
+          path: /prompt
+          method: post
+          private: true
